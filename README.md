@@ -47,6 +47,8 @@ npm run pinata:upload-all
 # and litActions/cids.json
 ```
 
+The frontend builds a Unified ACC using the password action CID and uses that for encrypt/decrypt.
+
 ## Frontend workflow (Naga Dev)
 Run the app:
 ```bash

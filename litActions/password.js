@@ -1,4 +1,4 @@
-export const go = async () => {
+const go = async () => {
   try {
     const {
       username,
@@ -12,15 +12,22 @@ export const go = async () => {
       unifiedAccessControlConditions = [],
     } = jsParams || {};
 
-    if (!username || !password || !registryAddress || !ciphertext || !dataToEncryptHash) {
+    if (
+      !username ||
+      !password ||
+      !registryAddress ||
+      !ciphertext ||
+      !dataToEncryptHash
+    ) {
       Lit.Actions.setResponse({
         response: JSON.stringify({
           ok: false,
           error: "missing_params",
-          message: "username, password, registryAddress, ciphertext, and dataToEncryptHash are required",
+          message:
+            "username, password, registryAddress, ciphertext, and dataToEncryptHash are required",
         }),
       });
-      return;
+      return false;
     }
 
     const supportedAlgorithms = ["SHA-256", "SHA-1", "SHA-512"];
@@ -29,10 +36,12 @@ export const go = async () => {
         response: JSON.stringify({
           ok: false,
           error: "invalid_algorithm",
-          message: `Unsupported algorithm: ${hashAlgorithm}. Supported: ${supportedAlgorithms.join(", ")}`,
+          message: `Unsupported algorithm: ${hashAlgorithm}. Supported: ${supportedAlgorithms.join(
+            ", "
+          )}`,
         }),
       });
-      return;
+      return false;
     }
 
     // Hash the provided password in the Lit Action runtime
@@ -40,15 +49,23 @@ export const go = async () => {
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest(hashAlgorithm, data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const computedHash = "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    const computedHash =
+      "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
     // Fetch the on-chain hash from the PasswordRegistry
-    const provider = new ethers.JsonRpcProvider(rpcUrl || (await Lit.Actions.getRpcUrl({ chain })));
-    const abi = ["function getPasswordHash(string username) view returns (bytes32)"];
+    const provider = new ethers.JsonRpcProvider(
+      rpcUrl || (await Lit.Actions.getRpcUrl({ chain }))
+    );
+    const abi = [
+      "function getPasswordHash(string username) view returns (bytes32)",
+    ];
     const registry = new ethers.Contract(registryAddress, abi, provider);
     const storedHash = await registry.getPasswordHash(username);
 
-    if (!storedHash || storedHash.toLowerCase() !== computedHash.toLowerCase()) {
+    if (
+      !storedHash ||
+      storedHash.toLowerCase() !== computedHash.toLowerCase()
+    ) {
       Lit.Actions.setResponse({
         response: JSON.stringify({
           ok: false,
@@ -56,7 +73,7 @@ export const go = async () => {
           error: "invalid_password",
         }),
       });
-      return;
+      return false;
     }
 
     // Decrypt using the same access control conditions that were used to encrypt
@@ -77,6 +94,8 @@ export const go = async () => {
         plaintext,
       }),
     });
+
+    return true;
   } catch (error) {
     Lit.Actions.setResponse({
       response: JSON.stringify({
@@ -86,4 +105,6 @@ export const go = async () => {
       }),
     });
   }
+
+  return false;
 };
