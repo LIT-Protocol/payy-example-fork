@@ -11,10 +11,23 @@ const throwErr = (code, message, data) => {
 
 const optionalParam = (key) => {
   let value;
-  if (typeof jsParams !== "undefined" && jsParams && jsParams[key] !== undefined) {
+  if (
+    typeof jsParams !== "undefined" &&
+    jsParams &&
+    jsParams[key] !== undefined
+  ) {
     value = jsParams[key];
-  } else if (typeof globalThis !== "undefined" && globalThis[key] !== undefined) {
+  } else if (
+    typeof globalThis !== "undefined" &&
+    globalThis[key] !== undefined
+  ) {
     value = globalThis[key];
+  } else {
+    try {
+      value = (0, eval)(key);
+    } catch {
+      // ignore missing globals
+    }
   }
   if (value === undefined || value === null || value === "") {
     return undefined;
@@ -46,6 +59,12 @@ const go = async () => {
     const unifiedAccessControlConditions = requireParam(
       "unifiedAccessControlConditions"
     );
+    if (!Array.isArray(unifiedAccessControlConditions)) {
+      throwErr(
+        "validation-error",
+        "unifiedAccessControlConditions must be an array"
+      );
+    }
 
     // Fetch guardian configuration from chain
     const provider = new ethers.providers.JsonRpcProvider(

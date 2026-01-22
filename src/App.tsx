@@ -66,7 +66,9 @@ function App() {
   );
   const [recoverAddress, setRecoverAddress] = useState("");
   const [childActionCid, setChildActionCid] = useState("");
-  const [guardianThreshold, setGuardianThreshold] = useState<number | null>(null);
+  const [guardianThreshold, setGuardianThreshold] = useState<number | null>(
+    null
+  );
   const [guardianHashes, setGuardianHashes] = useState<string[]>([]);
   const [recoverPassword, setRecoverPassword] = useState("");
   const [recoverPasswordVerified, setRecoverPasswordVerified] = useState(false);
@@ -179,7 +181,9 @@ function App() {
         args: [address as `0x${string}`],
       });
       const threshold = Number((res as any).threshold ?? res[0] ?? 0);
-      const guardians = ((res as any).guardianCIDs ?? res[1] ?? []) as `0x${string}`[];
+      const guardians = ((res as any).guardianCIDs ??
+        res[1] ??
+        []) as `0x${string}`[];
       setGuardianThreshold(Number.isFinite(threshold) ? threshold : null);
       setGuardianHashes(guardians.map((g) => g.toLowerCase()));
     } catch (err) {
@@ -478,6 +482,24 @@ function App() {
         litClient,
       });
 
+      console.log("jsParams", {
+        guardianRegistryAddress,
+        litActionRegistryAddress,
+        userAddress: entry.address,
+        guardians: [
+          {
+            cid: passwordActionCid,
+            data: {
+              password: providedPassword,
+              hashAlgorithm: "SHA-256",
+            },
+          },
+        ],
+        ciphertext: entry.ciphertext,
+        dataToEncryptHash: entry.dataToEncryptHash,
+        unifiedAccessControlConditions: uacc,
+      });
+
       const response = await litClient.executeJs({
         ipfsId: parentActionCid,
         authContext,
@@ -625,14 +647,15 @@ function App() {
         address: guardianRegistryAddress as `0x${string}`,
         abi: guardianRegistryAbi,
         functionName: "getGuardianEntry",
-        args: [recoverAddress as `0x${string}`, passwordGuardianHash as `0x${string}`],
+        args: [
+          recoverAddress as `0x${string}`,
+          passwordGuardianHash as `0x${string}`,
+        ],
       });
 
       const litClient = litClientRef.current;
       const expiration = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-      const resources: ShorthandResources = [
-        ["lit-action-execution", "*"],
-      ];
+      const resources: ShorthandResources = [["lit-action-execution", "*"]];
       const authContext = await authManagerRef.current.createEoaAuthContext({
         config: {
           account: ephemeralAccount,
@@ -676,7 +699,9 @@ function App() {
       setRecoverPasswordVerified(true);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Password verification failed");
+      setError(
+        err instanceof Error ? err.message : "Password verification failed"
+      );
       setRecoverPasswordVerified(false);
     } finally {
       setProcessing(false);
@@ -685,8 +710,9 @@ function App() {
 
   const guardianSummaries = useMemo(() => {
     if (!guardianHashes.length) return [];
-    const passwordHash =
-      passwordActionCid ? keccak256(toBytes(passwordActionCid)).toLowerCase() : "";
+    const passwordHash = passwordActionCid
+      ? keccak256(toBytes(passwordActionCid)).toLowerCase()
+      : "";
     return guardianHashes.map((hash) => {
       if (passwordHash && hash === passwordHash) {
         return "Password";
@@ -723,8 +749,8 @@ function App() {
               {connectionState === "connecting"
                 ? "Connecting…"
                 : litClientRef.current
-                  ? `Disconnect from ${litNetworkName}`
-                  : `Connect to ${litNetworkName}`}
+                ? `Disconnect from ${litNetworkName}`
+                : `Connect to ${litNetworkName}`}
             </button>
             <button
               className="ghost"
@@ -762,7 +788,7 @@ function App() {
                 : "No wallet connected"}
             </span>
           </div>
-          
+
           {error ? <p className="error-text">Error: {error}</p> : null}
         </div>
       </header>
@@ -823,7 +849,9 @@ function App() {
             <div className="label">Guardians</div>
             <div className="value monospace">
               {guardianHashes.length
-                ? guardianHashes.map((hash) => `${hash.slice(0, 10)}…`).join(", ")
+                ? guardianHashes
+                    .map((hash) => `${hash.slice(0, 10)}…`)
+                    .join(", ")
                 : "—"}
             </div>
           </div>

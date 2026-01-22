@@ -15,6 +15,12 @@ const optionalParam = (key) => {
     globalThis[key] !== undefined
   ) {
     value = globalThis[key];
+  } else {
+    try {
+      value = (0, eval)(key);
+    } catch {
+      // ignore missing globals
+    }
   }
   if (value === undefined || value === null || value === "") {
     return undefined;
