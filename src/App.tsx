@@ -387,15 +387,6 @@ function App() {
       const gasPrice = (await publicClient.getGasPrice()) * 2n;
       const deadline = Math.floor(Date.now() / 1000) + 10 * 60;
 
-      console.log("message", {
-        user: address as `0x${string}`,
-        guardianCIDHash,
-        authValueHash: authValueHash as `0x${string}`,
-        cipherHash: cipherHash as `0x${string}`,
-        nonce,
-        deadline,
-      });
-
       const signature = await account.signTypedData({
         domain: {
           name: "GuardianRegistry",
