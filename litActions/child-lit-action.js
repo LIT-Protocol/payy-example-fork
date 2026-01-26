@@ -10,7 +10,7 @@ const throwErr = (code, message, data) => {
 };
 
 // Update this address after each GuardianRegistry deployment.
-const GUARDIAN_REGISTRY_ADDRESS = "0x2BB1E09e39E396922a2efD6B46f0D17515C79d24";
+const GUARDIAN_REGISTRY_ADDRESS = "0x5aFf3Db9D55B07c6548e7253C2A8f88749479F33";
 
 const optionalParam = (key) => {
   let value;
@@ -51,6 +51,8 @@ const go = async () => {
     const guardianRegistryAddress = GUARDIAN_REGISTRY_ADDRESS;
     const userAddress = requireParam("userAddress");
     const guardians = requireParam("guardians");
+    const ciphertext = requireParam("ciphertext");
+    const dataToEncryptHash = requireParam("dataToEncryptHash");
     if (!Array.isArray(guardians)) {
       throwErr("validation-error", "guardians must be an array");
     }
@@ -60,7 +62,7 @@ const go = async () => {
       await Lit.Actions.getRpcUrl({ chain: "polygon" })
     );
     const abi = [
-      "function getGuardianConfig(address user) view returns (uint256 threshold, bytes32[] guardianCIDs)",
+      "function getGuardianConfig(address user) view returns (uint256 threshold, bytes32[] guardianCIDs, bytes32 cipherHash)",
       "function getGuardianEntry(address user, bytes32 guardianCIDHash) view returns (bytes32)",
     ];
     const registry = new ethers.Contract(
@@ -71,6 +73,7 @@ const go = async () => {
     const rawConfig = await registry.getGuardianConfig(userAddress);
     const threshold = Number(rawConfig.threshold ?? rawConfig[0] ?? 0);
     const guardianCIDHashes = rawConfig.guardianCIDs ?? rawConfig[1] ?? [];
+    const cipherHash = rawConfig.cipherHash ?? rawConfig[2];
     const guardianCIDs = guardians.map((entry) => entry?.cid).filter(Boolean);
 
     if (
@@ -79,6 +82,21 @@ const go = async () => {
       guardianCIDs.length === 0
     ) {
       throwErr("validation-error", "No guardian CIDs provided");
+    }
+    if (!cipherHash || cipherHash === ethers.constants.HashZero) {
+      throwErr("validation-error", "Missing cipher hash for user");
+    }
+    const expectedCipherHash = ethers.utils.keccak256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["string", "bytes32"],
+        [ciphertext, "0x" + dataToEncryptHash]
+      )
+    );
+    if (expectedCipherHash.toLowerCase() !== cipherHash.toLowerCase()) {
+      throwErr("cipher-mismatch", "Cipher hash does not match user", {
+        expected: expectedCipherHash.toLowerCase(),
+        got: cipherHash.toLowerCase(),
+      });
     }
 
     // Initialize guardian validation counter

@@ -56,10 +56,7 @@ The implementation uses:
 The following parameters are passed to child actions:
 
 - `ipfsId` - Processed IPFS CID of child action
-- `params` - Original child parameters
-- `walletConfig` - Retrieved guardian configuration
-- `ciphertext` - Encrypted data
-- `dataToEncryptHash` - Hash for validation
+- `params` - Child parameters (guards, user address, ciphertext, data hash)
 
 ## Response Format
 
@@ -162,9 +159,10 @@ The child Lit Action implements guardian threshold validation for social recover
 The child action receives parameters from the parent action and:
 
 1. Validates guardian configurations from smart contract data
-2. Calls individual guardian Lit Actions for authentication
-3. Counts successful guardian validations
-4. Performs decryption only when threshold requirements are met
+2. Verifies the ciphertext/data hash belongs to the user via on-chain cipher hash
+3. Calls individual guardian Lit Actions for authentication
+4. Counts successful guardian validations
+5. Performs decryption only when threshold requirements are met
 
 ## Child Action Input Parameters
 
@@ -173,9 +171,7 @@ The child action receives the following parameters from the parent action:
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `guardians` | array | Yes | Guardian entries of shape `{ cid, data }` |
-| `walletConfig` | object | Yes | Guardian configuration from smart contract |
-| `walletConfig.threshold` | number | Yes | Minimum number of guardian approvals required |
-| `walletConfig.guardianCIDs` | array | Yes | Array of guardian IPFS CIDs |
+| `userAddress` | string | Yes | User address for guardian config lookup |
 | `ciphertext` | string | Yes | Encrypted data to decrypt upon successful validation |
 | `dataToEncryptHash` | string | Yes | Hash for data validation |
 

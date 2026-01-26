@@ -3,6 +3,7 @@ export const guardianRegistryAbi = [
     inputs: [
       { internalType: 'bytes32', name: 'guardianCIDHash', type: 'bytes32' },
       { internalType: 'bytes32', name: 'authValueHash', type: 'bytes32' },
+      { internalType: 'bytes32', name: 'cipherHash', type: 'bytes32' },
     ],
     name: 'addGuardian',
     outputs: [],
@@ -14,6 +15,7 @@ export const guardianRegistryAbi = [
       { internalType: 'address', name: 'user', type: 'address' },
       { internalType: 'bytes32', name: 'guardianCIDHash', type: 'bytes32' },
       { internalType: 'bytes32', name: 'authValueHash', type: 'bytes32' },
+      { internalType: 'bytes32', name: 'cipherHash', type: 'bytes32' },
       { internalType: 'uint256', name: 'nonce', type: 'uint256' },
       { internalType: 'uint256', name: 'deadline', type: 'uint256' },
       { internalType: 'uint8', name: 'v', type: 'uint8' },
@@ -91,7 +93,15 @@ export const guardianRegistryAbi = [
     outputs: [
       { internalType: 'uint256', name: 'threshold', type: 'uint256' },
       { internalType: 'bytes32[]', name: 'guardianCIDs', type: 'bytes32[]' },
+      { internalType: 'bytes32', name: 'cipherHash', type: 'bytes32' },
     ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
+    name: 'getCipherHash',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'view',
     type: 'function',
   },

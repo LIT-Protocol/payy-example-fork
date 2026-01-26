@@ -11,7 +11,7 @@ const throwErr = (code, message, data) => {
 
 // Update this address after each LitActionRegistry deployment.
 const LIT_ACTION_REGISTRY_ADDRESS =
-  "0x12C24a06C0206A7199e4B5bcdACa7Cf23e374AA4";
+  "0xa4d048ae5894cA7Be8D09E6196dFD5232473DfbC";
 
 const optionalParam = (key) => {
   let value;
@@ -85,6 +85,8 @@ const go = async () => {
       params: {
         guardians: guardians || [],
         userAddress,
+        ciphertext,
+        dataToEncryptHash,
       },
     });
 

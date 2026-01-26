@@ -8,6 +8,7 @@ import {
   http,
   keccak256,
   toBytes,
+  encodeAbiParameters,
   custom,
 } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -352,6 +353,16 @@ function App() {
       });
 
       setCiphertext(res.ciphertext);
+      if (!res.ciphertext || !res.dataToEncryptHash) {
+        throw new Error("Encryption failed");
+      }
+      console.log(res.ciphertext, res.dataToEncryptHash);
+      const cipherHash = keccak256(
+        encodeAbiParameters(
+          [{ type: "string" }, { type: "bytes32" }],
+          [res.ciphertext, ("0x" + res.dataToEncryptHash) as `0x${string}`]
+        )
+      );
       if (res.ciphertext && res.dataToEncryptHash) {
         persistEntry({
           address,
@@ -375,6 +386,16 @@ function App() {
       });
       const gasPrice = (await publicClient.getGasPrice()) * 2n;
       const deadline = Math.floor(Date.now() / 1000) + 10 * 60;
+
+      console.log("message", {
+        user: address as `0x${string}`,
+        guardianCIDHash,
+        authValueHash: authValueHash as `0x${string}`,
+        cipherHash: cipherHash as `0x${string}`,
+        nonce,
+        deadline,
+      });
+
       const signature = await account.signTypedData({
         domain: {
           name: "GuardianRegistry",
@@ -387,6 +408,7 @@ function App() {
             { name: "user", type: "address" },
             { name: "guardianCIDHash", type: "bytes32" },
             { name: "authValueHash", type: "bytes32" },
+            { name: "cipherHash", type: "bytes32" },
             { name: "nonce", type: "uint256" },
             { name: "deadline", type: "uint256" },
           ],
@@ -396,6 +418,7 @@ function App() {
           user: address as `0x${string}`,
           guardianCIDHash,
           authValueHash: authValueHash as `0x${string}`,
+          cipherHash: cipherHash as `0x${string}`,
           nonce,
           deadline,
         },
@@ -409,6 +432,7 @@ function App() {
           address as `0x${string}`,
           guardianCIDHash,
           authValueHash as `0x${string}`,
+          cipherHash as `0x${string}`,
           nonce,
           deadline,
           v,
