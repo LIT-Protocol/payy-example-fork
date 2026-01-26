@@ -12,6 +12,8 @@ contract GuardianRegistry {
         );
     bytes32 private constant REMOVE_GUARDIAN_TYPEHASH =
         keccak256("RemoveGuardian(address user,bytes32 guardianCIDHash,uint256 nonce,uint256 deadline)");
+    bytes32 private constant SET_THRESHOLD_TYPEHASH =
+        keccak256("SetThreshold(address user,uint256 threshold,uint256 nonce,uint256 deadline)");
 
     struct GuardianType {
         string name;
@@ -109,6 +111,31 @@ contract GuardianRegistry {
         _removeGuardian(user, guardianCIDHash);
     }
 
+    function setThreshold(uint256 threshold) external {
+        _setThreshold(msg.sender, threshold);
+    }
+
+    function setThresholdWithSig(
+        address user,
+        uint256 threshold,
+        uint256 nonce,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        _requireValidSig(
+            user,
+            _hashSetThreshold(user, threshold, nonce, deadline),
+            nonce,
+            deadline,
+            v,
+            r,
+            s
+        );
+        _setThreshold(user, threshold);
+    }
+
     function getGuardianConfig(address user)
         external
         view
@@ -166,6 +193,18 @@ contract GuardianRegistry {
         uint256 nextThreshold = n <= 1 ? n : (n + 1) / 2;
         config.threshold = nextThreshold;
         emit ThresholdUpdated(user, nextThreshold);
+    }
+
+    function _setThreshold(address user, uint256 threshold) internal {
+        GuardianConfig storage config = guardianConfigs[user];
+        uint256 n = config.guardianCIDs.length;
+        if (n == 0) {
+            require(threshold == 0, "GuardianRegistry: invalid threshold");
+        } else {
+            require(threshold > 0 && threshold <= n, "GuardianRegistry: invalid threshold");
+        }
+        config.threshold = threshold;
+        emit ThresholdUpdated(user, threshold);
     }
 
     function _addGuardian(
@@ -291,5 +330,14 @@ contract GuardianRegistry {
         return keccak256(
             abi.encode(REMOVE_GUARDIAN_TYPEHASH, user, guardianCIDHash, nonce, deadline)
         );
+    }
+
+    function _hashSetThreshold(
+        address user,
+        uint256 threshold,
+        uint256 nonce,
+        uint256 deadline
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(SET_THRESHOLD_TYPEHASH, user, threshold, nonce, deadline));
     }
 }
