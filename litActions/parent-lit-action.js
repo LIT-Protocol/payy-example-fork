@@ -11,16 +11,17 @@ const throwErr = (code, message, data) => {
 
 const optionalParam = (key) => {
   let value;
-  if (typeof jsParams !== "undefined" && jsParams && jsParams[key] !== undefined) {
+  if (
+    typeof jsParams !== "undefined" &&
+    jsParams &&
+    jsParams[key] !== undefined
+  ) {
     value = jsParams[key];
-  } else if (typeof globalThis !== "undefined" && globalThis[key] !== undefined) {
+  } else if (
+    typeof globalThis !== "undefined" &&
+    globalThis[key] !== undefined
+  ) {
     value = globalThis[key];
-  } else {
-    try {
-      value = (0, eval)(key);
-    } catch {
-      // ignore missing globals
-    }
   }
   if (value === undefined || value === null || value === "") {
     return undefined;
@@ -39,7 +40,6 @@ const requireParam = (key) => {
 const go = async () => {
   try {
     // Get required params
-    const guardianRegistryAddress = requireParam("guardianRegistryAddress");
     const litActionRegistryAddress = requireParam("litActionRegistryAddress");
     const userAddress = requireParam("userAddress");
     const guardians = requireParam("guardians");
@@ -81,11 +81,7 @@ const go = async () => {
       // jsParams.
       params: {
         guardians: guardians || [],
-        guardianRegistryAddress,
         userAddress,
-        ciphertext,
-        dataToEncryptHash,
-        unifiedAccessControlConditions,
       },
     });
 
@@ -111,7 +107,7 @@ const go = async () => {
     // Child ok - proceed with decryption
     try {
       const decryptedData = await Lit.Actions.decryptAndCombine({
-        accessControlConditions: unifiedAccessControlConditions || [],
+        accessControlConditions: unifiedAccessControlConditions,
         ciphertext,
         dataToEncryptHash,
         chain: "polygon",

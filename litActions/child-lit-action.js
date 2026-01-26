@@ -9,6 +9,9 @@ const throwErr = (code, message, data) => {
   throw err;
 };
 
+// Update this address after each GuardianRegistry deployment.
+const GUARDIAN_REGISTRY_ADDRESS = "0x2BB1E09e39E396922a2efD6B46f0D17515C79d24";
+
 const optionalParam = (key) => {
   let value;
   if (
@@ -22,12 +25,6 @@ const optionalParam = (key) => {
     globalThis[key] !== undefined
   ) {
     value = globalThis[key];
-  } else {
-    try {
-      value = (0, eval)(key);
-    } catch {
-      // ignore missing globals
-    }
   }
   if (value === undefined || value === null || value === "") {
     return undefined;
@@ -51,7 +48,7 @@ const cleanCid = (cid) => {
 const go = async () => {
   try {
     // Get required inputs from jsParams
-    const guardianRegistryAddress = requireParam("guardianRegistryAddress");
+    const guardianRegistryAddress = GUARDIAN_REGISTRY_ADDRESS;
     const userAddress = requireParam("userAddress");
     const guardians = requireParam("guardians");
     if (!Array.isArray(guardians)) {

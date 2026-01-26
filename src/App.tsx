@@ -452,8 +452,8 @@ function App() {
       setError("Connect to Lit first");
       return false;
     }
-    if (!guardianRegistryAddress || !litActionRegistryAddress) {
-      setError("Set registry addresses in your .env");
+    if (!litActionRegistryAddress) {
+      setError("Set lit action registry address in your .env");
       return false;
     }
     if (!providedPassword || !recoverPasswordVerified) {
@@ -482,8 +482,7 @@ function App() {
         litClient,
       });
 
-      console.log("jsParams", {
-        guardianRegistryAddress,
+      const jsParams = {
         litActionRegistryAddress,
         userAddress: entry.address,
         guardians: [
@@ -498,28 +497,14 @@ function App() {
         ciphertext: entry.ciphertext,
         dataToEncryptHash: entry.dataToEncryptHash,
         unifiedAccessControlConditions: uacc,
-      });
+      };
+
+      console.log("jsParams", jsParams);
 
       const response = await litClient.executeJs({
         ipfsId: parentActionCid,
         authContext,
-        jsParams: {
-          guardianRegistryAddress,
-          litActionRegistryAddress,
-          userAddress: entry.address,
-          guardians: [
-            {
-              cid: passwordActionCid,
-              data: {
-                password: providedPassword,
-                hashAlgorithm: "SHA-256",
-              },
-            },
-          ],
-          ciphertext: entry.ciphertext,
-          dataToEncryptHash: entry.dataToEncryptHash,
-          unifiedAccessControlConditions: uacc,
-        },
+        jsParams,
       });
 
       console.log(response);
